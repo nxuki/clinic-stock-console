@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getProduct, updateProductStock } from "../api/products";
 
+import type { ProductsResponse } from "../types/product";
+
 function ProductDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-
   const queryClient = useQueryClient();
 
   const productId = Number(id);
@@ -35,9 +36,27 @@ function ProductDetailPage() {
     onSuccess: (updatedProduct) => {
       queryClient.setQueryData(["product", productId], updatedProduct);
 
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
+      queryClient.setQueryData<ProductsResponse>(
+        ["products"],
+        (currentData) => {
+          if (!currentData) {
+            return currentData;
+          }
+
+          return {
+            ...currentData,
+
+            products: currentData.products.map((item) =>
+              item.id === updatedProduct.id
+                ? {
+                    ...item,
+                    stock: updatedProduct.stock,
+                  }
+                : item,
+            ),
+          };
+        },
+      );
 
       setSuccessMessage(`Stock updated to ${updatedProduct.stock}.`);
 
@@ -79,25 +98,31 @@ function ProductDetailPage() {
 
   function logout() {
     sessionStorage.removeItem("accessToken");
+
     sessionStorage.removeItem("refreshToken");
+
     sessionStorage.removeItem("firstName");
+
+    sessionStorage.removeItem("expiresAt");
 
     navigate("/login");
   }
 
+  const firstName = sessionStorage.getItem("firstName") || "User";
+
   if (!Number.isFinite(productId) || productId <= 0) {
     return (
       <main className="status-page">
-        <h2>Invalid stock item</h2>
+        <h2>Invalid item</h2>
 
-        <p>The requested stock item could not be identified.</p>
+        <p>The item link is not valid.</p>
 
         <button
-          className="primary-button"
           type="button"
+          className="primary-button"
           onClick={() => navigate("/products")}
         >
-          Return to inventory
+          Back to inventory
         </button>
       </main>
     );
@@ -106,11 +131,11 @@ function ProductDetailPage() {
   if (isLoading) {
     return (
       <main className="status-page">
-        <div className="loader" aria-hidden="true"></div>
+        <div className="loader" aria-hidden="true" />
 
         <h2>Loading item...</h2>
 
-        <p>Please wait while we retrieve the stock item.</p>
+        <p>Please wait while we load the stock information.</p>
       </main>
     );
   }
@@ -122,21 +147,21 @@ function ProductDetailPage() {
 
         <p>We couldn't retrieve this stock item.</p>
 
-        <div className="error-actions">
+        <div className="status-actions">
           <button
-            className="primary-button"
             type="button"
+            className="primary-button"
             onClick={() => refetch()}
           >
             Try again
           </button>
 
           <button
-            className="secondary-button"
             type="button"
+            className="secondary-button"
             onClick={() => navigate("/products")}
           >
-            Return to inventory
+            Back to inventory
           </button>
         </div>
       </main>
@@ -151,12 +176,13 @@ function ProductDetailPage() {
 
           <div>
             <h1>Clinic Stock Console</h1>
+
             <p>Stock Management System</p>
           </div>
         </div>
 
         <div className="user-area">
-          <span>Welcome, {sessionStorage.getItem("firstName") || "User"}</span>
+          <span>Welcome, {firstName}</span>
 
           <button type="button" className="logout-button" onClick={logout}>
             Log out
@@ -164,17 +190,17 @@ function ProductDetailPage() {
         </div>
       </header>
 
-      <main className="detail-page">
-        <div className="detail-toolbar">
+      <main className="dashboard-content">
+        <section className="detail-toolbar">
           <button
             type="button"
             className="back-button"
             onClick={() => navigate(-1)}
           >
-            ← Back to inventory
+            ← Back
           </button>
 
-          <div className="copy-area">
+          <div className="copy-link-area">
             <button type="button" className="copy-button" onClick={copyLink}>
               Copy item link
             </button>
@@ -185,12 +211,12 @@ function ProductDetailPage() {
               </span>
             )}
           </div>
-        </div>
+        </section>
 
-        <section className="detail-card">
+        <section className="product-detail-card">
           <div className="detail-image-section">
             <img
-              src={product.thumbnail}
+              src={product.images?.[0] || product.thumbnail}
               alt={product.title}
               className="detail-image"
               onError={(event) => {
@@ -205,67 +231,70 @@ function ProductDetailPage() {
             />
 
             <div className="detail-image-fallback">
-              <div>CS</div>
-              <p>Image unavailable</p>
+              <span>CS</span>
+
+              <small>Image unavailable</small>
             </div>
           </div>
 
-          <div className="detail-information">
+          <div className="detail-content">
             <span className="category-badge">{product.category}</span>
 
             <h2>{product.title}</h2>
 
             <p className="detail-description">{product.description}</p>
 
-            <div className="information-grid">
-              <div className="information-item">
-                <span>Price</span>
+            <div className="detail-grid">
+              <div className="detail-box">
+                <span className="detail-label">Price</span>
 
                 <strong>${product.price.toFixed(2)}</strong>
               </div>
 
-              <div className="information-item">
-                <span>Current stock</span>
+              <div className="detail-box">
+                <span className="detail-label">Current stock</span>
 
                 <strong>{product.stock}</strong>
               </div>
 
               {product.brand && (
-                <div className="information-item">
-                  <span>Brand</span>
+                <div className="detail-box">
+                  <span className="detail-label">Brand</span>
 
                   <strong>{product.brand}</strong>
                 </div>
               )}
 
               {product.weight !== undefined && (
-                <div className="information-item">
-                  <span>Weight</span>
+                <div className="detail-box">
+                  <span className="detail-label">Weight</span>
 
                   <strong>{product.weight}</strong>
                 </div>
               )}
 
               {product.rating !== undefined && (
-                <div className="information-item">
-                  <span>Rating</span>
+                <div className="detail-box">
+                  <span className="detail-label">Rating</span>
 
                   <strong>{product.rating}</strong>
                 </div>
               )}
 
-              <div className="information-item">
-                <span>Item ID</span>
+              <div className="detail-box">
+                <span className="detail-label">Item ID</span>
 
                 <strong>#{product.id}</strong>
               </div>
             </div>
 
             <section className="stock-correction">
-              <div className="stock-correction-heading">
-                <h3>Correct stock level</h3>
+              <div>
+                <h3>Correct stock</h3>
 
-                <p>Enter the corrected quantity for this item.</p>
+                <p>
+                  Update the stock quantity if the recorded amount is incorrect.
+                </p>
               </div>
 
               <form className="stock-form" onSubmit={handleStockUpdate}>
@@ -277,7 +306,7 @@ function ProductDetailPage() {
                     type="number"
                     min="0"
                     step="1"
-                    required
+                    inputMode="numeric"
                     value={stockValue}
                     onChange={(event) => setStockValue(event.target.value)}
                     placeholder={String(product.stock)}
@@ -286,22 +315,22 @@ function ProductDetailPage() {
 
                 <button
                   type="submit"
-                  className="primary-button update-stock-button"
-                  disabled={stockMutation.isPending || stockValue.trim() === ""}
+                  className="primary-button"
+                  disabled={stockMutation.isPending}
                 >
                   {stockMutation.isPending ? "Updating..." : "Update stock"}
                 </button>
               </form>
 
-              {stockMutation.isError && (
-                <p className="stock-error" role="alert">
-                  Stock could not be updated. Please try again.
+              {successMessage && (
+                <p className="success-message" role="status">
+                  {successMessage}
                 </p>
               )}
 
-              {successMessage && (
-                <p className="stock-success" role="status">
-                  {successMessage}
+              {stockMutation.isError && (
+                <p className="error-message" role="alert">
+                  Unable to update stock. Please try again.
                 </p>
               )}
             </section>
