@@ -115,3 +115,31 @@ I used AI during this assessment to assist with project scaffolding, implementat
 
 I made the initial design decisions myself and reviewed and tested the implementation. I understand that I need to be able to explain and modify the code during the live review.
 ```
+
+## My Reflections
+
+### 1. What changed during implementation?
+
+One thing that changed during implementation was how I handled the stock list. At first, I thought search, filtering and sorting would mainly depend on separate API requests. As I implemented the application, I decided to fetch the product list and handle search, filtering, sorting and pagination on the client because the dataset was small enough. This made the behaviour more predictable and also helped avoid stale search results from competing requests.
+
+I also improved the session-expiry flow. Instead of simply sending the user back to the login page, I preserved the page they were viewing so they could continue from the same place after signing in again.
+
+Another improvement was the stock correction behaviour. Since DummyJSON does not permanently save PUT updates, I updated the TanStack Query cache so the corrected stock value remains visible during the active session.
+
+### 2. What would I do differently if I had another day?
+
+If I had another day, I would add more UI and integration tests, especially around session expiry, filtering and URL state. I would also spend more time testing the application under slow or unstable network conditions.
+
+I would also improve the stock correction functionality by using a real backend that permanently stores stock changes. DummyJSON only simulates updates, so the original stock value returns after a full refresh.
+
+### 3. What was the hardest part?
+
+The hardest part for me was getting direct product URLs to work correctly after refreshing the application on Vercel. The product pages worked when navigating through the application, but refreshing a direct product URL initially resulted in a 404 error. Solving this helped me understand client-side routing and how SPA routes need to be handled when deploying an application.
+
+### 4. What am I most satisfied with?
+
+I am most satisfied with preserving the search, filters, sorting and current page in the URL. This means that when a user refreshes the page or shares the URL with someone else, the same inventory view can be restored. I think this makes the application more practical and easier to use.
+
+### 5. AI use and learning
+
+I used AI throughout the project to help with scaffolding, implementation guidance, debugging, testing, tooling, CI/CD setup and documentation. I manually tested the application as I worked through the project, and I am reviewing the implementation so that I can explain the decisions and code during the live session.
