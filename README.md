@@ -14,6 +14,11 @@ https://clinic-stock-console-sigma.vercel.app
 GitHub repository:
 https://github.com/nxuki/clinic-stock-console
 
+## My Test Login Credentials
+
+- Username: `emilys`
+- Password: `emilyspass`
+
 ## Tech Stack
 
 - React
@@ -143,10 +148,3 @@ I am most satisfied with preserving the search, filters, sorting and current pag
 ### 5. AI use and learning
 
 I used AI throughout the project to help with scaffolding, implementation guidance, debugging, testing, tooling, CI/CD setup and documentation. I manually tested the application as I worked through the project, and I am reviewing the implementation so that I can explain the decisions and code during the live session.
-
-## My Test Login Credentials
-
-The application uses the DummyJSON test account provided for the assessment.
-
-- Username: `emilys`
-- Password: `emilyspass`
